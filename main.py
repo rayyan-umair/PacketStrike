@@ -51,6 +51,7 @@ from database import Database
 from detections import DetectionEngine
 from entity import EntityEngine
 from inspector import InspectionEngine
+from fastapi import FastAPI
 
 # ── Logging Setup ─────────────────────────────────────────────────────────────
 
