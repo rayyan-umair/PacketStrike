@@ -1,0 +1,43 @@
+# PacketStrike — Python Dependencies
+# Built by Rayyan Umair
+# "Silence the noise, strike the signal."
+#
+# Install: pip install -r requirements.txt
+# Requires: Python 3.11+
+# System:   libpcap must be installed (see notes below)
+#
+# ── System Prerequisites ──────────────────────────────────────
+# Ubuntu / Debian:
+#   sudo apt install libpcap-dev
+# macOS:
+#   brew install libpcap
+# Windows:
+#   Install Npcap from https://npcap.com
+# ─────────────────────────────────────────────────────────────
+
+# ── Web Framework ─────────────────────────────────────────────
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# ── Settings & Validation ─────────────────────────────────────
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# ── Packet Capture ────────────────────────────────────────────
+scapy==2.6.1
+pyshark==0.6.0
+
+# ── Database ──────────────────────────────────────────────────
+duckdb==1.1.3
+
+# ── Data Processing ───────────────────────────────────────────
+pandas==2.2.3
+pyarrow==18.1.0
+
+# ── HTTP Client (AI layer) ────────────────────────────────────
+httpx==0.28.1
+
+# ── Utilities ─────────────────────────────────────────────────
+python-dotenv==1.0.1
+python-multipart==0.0.20
+websockets==14.1

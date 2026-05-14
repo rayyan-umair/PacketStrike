@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PacketStrike</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cyan:#00FFD1;--cyan-dim:#00b894;--cyan-faint:rgba(0,255,209,0.08);
+  --red:#FF4D6D;--red-dim:#c9184a;--red-faint:rgba(255,77,109,0.1);
+  --amber:#FFB703;--amber-faint:rgba(255,183,3,0.1);
+  --bg:#0A0A0C;--bg2:#0f0f12;--bg3:#141418;--bg4:#1a1a20;
+  --border:rgba(0,255,209,0.12);--border2:rgba(0,255,209,0.2);
+  --text:#e0e0e0;--text-dim:#6b7280;--text-muted:#3d4450;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;overflow-x:hidden}
+
+.shell{display:grid;grid-template-rows:48px 1fr;height:100vh}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:16px;position:relative;z-index:10}
+.main{display:grid;grid-template-columns:220px 1fr 300px;height:calc(100vh - 48px);overflow:hidden}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.center{display:grid;grid-template-rows:200px 1fr;overflow:hidden}
+.rightpanel{background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+
+.logo{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan);letter-spacing:2px}
+.logo span{color:var(--text-dim);font-weight:400}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.top-stat{display:flex;flex-direction:column;align-items:center}
+.top-stat-val{font-family:var(--mono);font-size:18px;color:var(--cyan);line-height:1}
+.top-stat-lbl{font-size:10px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.top-stats{display:flex;gap:24px;margin-left:auto}
+.conn-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:3px;border:1px solid var(--text-muted);color:var(--text-muted);letter-spacing:1px}
+.time-display{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+
+.sec-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--cyan-dim)}
+.sec-count{font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-left:auto}
+
+.waterfall-wrap{position:relative;overflow:hidden;background:var(--bg);border-bottom:1px solid var(--border)}
+canvas#waterfall{display:block;width:100%;height:200px}
+.waterfall-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none}
+.wf-label{position:absolute;top:8px;left:12px;font-family:var(--mono);font-size:9px;color:var(--cyan-dim);letter-spacing:1px}
+.wf-legend{position:absolute;bottom:8px;right:12px;display:flex;gap:12px}
+.wf-leg-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text-dim);font-family:var(--mono)}
+.wf-leg-dot{width:6px;height:6px;border-radius:1px}
+
+.strike-feed{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.strike-item{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;position:relative}
+.strike-item:hover{background:var(--cyan-faint)}
+.strike-item.selected{background:var(--cyan-faint);border-left:2px solid var(--cyan)}
+.strike-item.new{animation:strikeIn 0.4s ease}
+@keyframes strikeIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+.strike-type{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px}
+.strike-type.s1{color:var(--amber)}
+.strike-type.s2{color:var(--red)}
+.strike-type.s3{color:var(--red)}
+.strike-type.s4{color:var(--red)}
+.strike-type.s5{color:var(--cyan)}
+.strike-ip{font-family:var(--mono);font-size:11px;color:var(--text);margin-top:3px}
+.strike-ip span{color:var(--text-dim)}
+.strike-time{font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px}
+.strike-sev{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:9px;padding:2px 5px;border-radius:2px}
+.sev-crit{background:var(--red-faint);color:var(--red);border:1px solid var(--red-dim)}
+.sev-high{background:var(--amber-faint);color:var(--amber);border:1px solid #b45309}
+
+.entity-list{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.entity-row{display:grid;grid-template-columns:1fr 60px 36px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--border);transition:background 0.15s;cursor:pointer}
+.entity-row:hover{background:var(--cyan-faint)}
+.entity-ip{font-family:var(--mono);font-size:11px;color:var(--text)}
+.entity-flags{display:flex;gap:3px;margin-top:3px}
+.flag-dot{width:5px;height:5px;border-radius:50%}
+.flag-beacon{background:var(--red)}
+.flag-scan{background:var(--amber)}
+.flag-pivot{background:#a855f7}
+.flag-exfil{background:var(--cyan)}
+.flag-bad{background:var(--red)}
+.risk-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.risk-bar{height:100%;border-radius:2px;transition:width 0.5s}
+.risk-val{font-family:var(--mono);font-size:10px;text-align:right}
+
+.detail-panel{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;padding:14px}
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:var(--text-muted)}
+.detail-badge{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 10px;border-radius:3px;margin-bottom:12px}
+.badge-crit{background:var(--red-faint);color:var(--red);border:1px solid var(--red-dim)}
+.badge-high{background:var(--amber-faint);color:var(--amber);border:1px solid #b45309}
+.fivewh{display:flex;flex-direction:column;gap:8px}
+.fivewh-row{display:grid;grid-template-columns:36px 1fr;gap:8px;align-items:start}
+.fivewh-key{font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:2px;padding-top:2px;font-weight:700}
+.fivewh-val{font-size:12px;color:var(--text);line-height:1.5}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.hex-view{font-family:var(--mono);font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px;line-height:1.8;overflow-x:auto;white-space:pre}
+.hex-normal{color:var(--text-dim)}
+.hex-hit{color:var(--red);animation:flicker 1.5s infinite}
+@keyframes flicker{0%,100%{opacity:1}45%{opacity:0.5}55%{opacity:0.5}}
+.hex-header{color:var(--text-muted)}
+.replay-btn{display:flex;align-items:center;gap:6px;margin-top:12px;padding:8px 14px;background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);font-family:var(--mono);font-size:11px;letter-spacing:1px;border-radius:3px;cursor:pointer;width:100%;justify-content:center;transition:all 0.2s}
+.replay-btn:hover{background:var(--cyan-faint);border-color:var(--cyan)}
+
+.timeline{padding:0 0 14px}
+.tl-item{display:flex;gap:10px;padding:6px 0;position:relative}
+.tl-item::before{content:'';position:absolute;left:5px;top:18px;bottom:-6px;width:1px;background:var(--border)}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;border:2px solid var(--bg2)}
+.tl-dot.strike{background:var(--red)}
+.tl-dot.flow{background:var(--border2)}
+.tl-dot.dlp{background:var(--amber)}
+.tl-content{flex:1}
+.tl-time{font-family:var(--mono);font-size:9px;color:var(--text-muted)}
+.tl-desc{font-size:11px;color:var(--text);margin-top:1px;line-height:1.4}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{padding:8px 14px;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.15s}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.stat-chips{display:flex;gap:1px;padding:8px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chip{flex:1;background:var(--bg3);padding:6px 8px;text-align:center}
+.chip:first-child{border-radius:3px 0 0 3px}
+.chip:last-child{border-radius:0 3px 3px 0}
+.chip-val{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--cyan)}
+.chip-lbl{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo">PACKET<span>STRIKE</span></div>
+    <div class="status-dot" id="statusDot"></div>
+    <div class="conn-badge" id="connBadge">OFFLINE</div>
+    <div class="time-display" id="clockEl"></div>
+    <div class="top-stats">
+      <div class="top-stat"><div class="top-stat-val" id="topStrikes">0</div><div class="top-stat-lbl">Strikes</div></div>
+      <div class="top-stat"><div class="top-stat-val" id="topFlows">0</div><div class="top-stat-lbl">Flows</div></div>
+      <div class="top-stat"><div class="top-stat-val" id="topEntities">0</div><div class="top-stat-lbl">Entities</div></div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Sidebar: entities -->
+    <div class="sidebar">
+      <div class="sec-header">
+        <div class="sec-title">Entities</div>
+        <div class="sec-count" id="entityCount">0 tracked</div>
+      </div>
+      <div class="stat-chips">
+        <div class="chip"><div class="chip-val" id="chipHigh">0</div><div class="chip-lbl">High Risk</div></div>
+        <div class="chip"><div class="chip-val" id="chipFlags">0</div><div class="chip-lbl">Flagged</div></div>
+      </div>
+      <div class="entity-list" id="entityList"></div>
+    </div>
+
+    <!-- Center: waterfall + feed -->
+    <div class="center">
+      <div class="waterfall-wrap">
+        <canvas id="waterfall"></canvas>
+        <div class="waterfall-overlay">
+          <div class="wf-label">TRAFFIC SPECTROGRAM — LIVE</div>
+          <div class="wf-legend">
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--red)"></div>STRIKE</div>
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--cyan)"></div>NORMAL</div>
+            <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--amber)"></div>DLP HIT</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;overflow:hidden">
+        <div class="sec-header">
+          <div class="sec-title">Strike Feed</div>
+          <div class="sec-count" id="strikeCount">0 total</div>
+        </div>
+        <div class="strike-feed" id="strikeFeed"></div>
+      </div>
+    </div>
+
+    <!-- Right: detail -->
+    <div class="rightpanel">
+      <div class="tabs">
+        <div class="tab active" id="tabDetail" onclick="switchTab('detail')">5W+H</div>
+        <div class="tab" id="tabTimeline" onclick="switchTab('timeline')">Timeline</div>
+        <div class="tab" id="tabHex" onclick="switchTab('hex')">Hex View</div>
+      </div>
+      <div id="panelDetail" class="detail-panel">
+        <div class="detail-empty">
+          <div style="font-size:28px;color:var(--border2)">◈</div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px">SELECT A STRIKE</div>
+        </div>
+      </div>
+      <div id="panelTimeline" class="detail-panel" style="display:none">
+        <div class="detail-empty">
+          <div style="font-size:28px;color:var(--border2)">◈</div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px">SELECT A STRIKE</div>
+        </div>
+      </div>
+      <div id="panelHex" class="detail-panel" style="display:none">
+        <div class="detail-empty">
+          <div style="font-size:28px;color:var(--border2)">◈</div>
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:1px">SELECT A STRIKE</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8001';
+const WS  = 'ws://localhost:8001/ws/strikes';
+
+let strikes = [];
+let entities = [];
+let selectedStrike = null;
+let activeTab = 'detail';
+let flowCount = 0;
+let ws = null;
+
+// Clock
+function updateClock(){
+  document.getElementById('clockEl').textContent =
+    new Date().toISOString().replace('T',' ').slice(0,19)+' UTC';
+}
+setInterval(updateClock,1000);
+updateClock();
+
+// Waterfall
+const wfCanvas = document.getElementById('waterfall');
+const wfCtx = wfCanvas.getContext('2d');
+let wfCols = [];
+
+function initWaterfall(){
+  wfCanvas.width = wfCanvas.offsetWidth || 800;
+  wfCanvas.height = 200;
+  wfCols = new Array(wfCanvas.width).fill(null).map(()=>({val:0,type:'normal'}));
+}
+
+function pushWaterfallColumn(val,type){
+  wfCols.shift();
+  wfCols.push({val:Math.min(val,1),type});
+  drawWaterfall();
+}
+
+function drawWaterfall(){
+  const w=wfCanvas.width, h=wfCanvas.height;
+  wfCtx.fillStyle='#0A0A0C';
+  wfCtx.fillRect(0,0,w,h);
+  const colW=w/wfCols.length;
+  wfCols.forEach((col,i)=>{
+    const barH=col.val*h;
+    let color;
+    if(col.type==='strike') color=`rgba(255,77,109,${0.4+col.val*0.6})`;
+    else if(col.type==='dlp') color=`rgba(255,183,3,${0.3+col.val*0.6})`;
+    else color=`rgba(0,255,209,${0.08+col.val*0.35})`;
+    wfCtx.fillStyle=color;
+    wfCtx.fillRect(i*colW,h-barH,colW-0.5,barH);
+  });
+  wfCtx.strokeStyle='rgba(0,255,209,0.05)';
+  wfCtx.lineWidth=1;
+  [0.25,0.5,0.75].forEach(p=>{
+    wfCtx.beginPath();
+    wfCtx.moveTo(0,h*p);
+    wfCtx.lineTo(w,h*p);
+    wfCtx.stroke();
+  });
+}
+
+initWaterfall();
+window.addEventListener('resize',initWaterfall);
+setInterval(()=>pushWaterfallColumn(Math.random()*0.15,'normal'),200);
+
+// Strike helpers
+const STRIKE_NAMES={
+  'STRIKE-001':'PORT SCAN','STRIKE-002':'BEACONING',
+  'STRIKE-003':'HIGH OUTBOUND','STRIKE-004':'INT. PIVOT','STRIKE-005':'KNOWN BAD'
+};
+const STRIKE_CLASS={
+  'STRIKE-001':'s1','STRIKE-002':'s2','STRIKE-003':'s3','STRIKE-004':'s4','STRIKE-005':'s5'
+};
+
+function formatTime(iso){
+  if(!iso) return '—';
+  return new Date(iso).toISOString().slice(11,19)+' UTC';
+}
+
+// Render strike feed
+function renderStrikes(){
+  const feed=document.getElementById('strikeFeed');
+  feed.innerHTML='';
+  [...strikes].reverse().forEach((s,i)=>{
+    const div=document.createElement('div');
+    const sc=STRIKE_CLASS[s.strike_type]||'s1';
+    const name=STRIKE_NAMES[s.strike_type]||s.strike_type;
+    const sevC=s.severity>=8?'sev-crit':'sev-high';
+    div.className='strike-item'+(selectedStrike?.strike_id===s.strike_id?' selected':'')+(i===0?' new':'');
+    div.innerHTML=`
+      <div class="strike-type ${sc}">${name}</div>
+      <div class="strike-ip">${s.src_ip} <span>→</span> ${s.dst_ip||'—'}</div>
+      <div class="strike-time">${formatTime(s.timestamp)}</div>
+      <div class="strike-sev ${sevC}">${s.severity>=8?'CRIT':'HIGH'}</div>
+    `;
+    div.onclick=()=>{selectedStrike=s;renderStrikes();renderDetail();};
+    feed.appendChild(div);
+  });
+  document.getElementById('strikeCount').textContent=strikes.length+' total';
+  document.getElementById('topStrikes').textContent=strikes.length;
+}
+
+// Render detail
+function renderDetail(){
+  const s=selectedStrike;
+  const pd=document.getElementById('panelDetail');
+  const pt=document.getElementById('panelTimeline');
+  const ph=document.getElementById('panelHex');
+  const empty=`<div class="detail-empty"><div style="font-size:28px;color:var(--border2)">◈</div><div style="font-family:var(--mono);font-size:10px;letter-spacing:1px">SELECT A STRIKE</div></div>`;
+
+  if(!s){pd.innerHTML=empty;pt.innerHTML=empty;ph.innerHTML=empty;return;}
+
+  const name=STRIKE_NAMES[s.strike_type]||s.strike_type;
+  const sevC=s.severity>=8?'badge-crit':'badge-high';
+
+  pd.innerHTML=`
+    <div class="detail-badge ${sevC}">${s.strike_type} — ${name}</div>
+    <div class="fivewh">
+      ${fw('WHO',s.who||'—')}
+      ${fw('WHAT',s.what||'—')}
+      ${fw('WHERE',s.where||s.where_field||'—')}
+      ${fw('WHEN',s.when||s.when_field||formatTime(s.timestamp))}
+      ${fw('WHY',s.why||'—')}
+      ${fw('HOW',s.how||'—')}
+    </div>
+    <div class="divider"></div>
+    ${s.evidence_summary?`<div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);word-break:break-all;margin-bottom:8px">${s.evidence_summary}</div>`:''}
+    <button class="replay-btn" onclick="alert('STRIKE-REPLAY requires backend at ${API}')">⟳ STRIKE-REPLAY</button>
+  `;
+
+  const entity=entities.find(e=>e.ip_address===s.src_ip);
+  if(entity&&entity.timeline&&entity.timeline.length){
+    const recent=[...entity.timeline].reverse().slice(0,20);
+    pt.innerHTML='<div class="timeline">'+recent.map(t=>{
+      const dc=t.event_type==='strike'?'strike':t.event_type==='dlp_hit'?'dlp':'flow';
+      return `<div class="tl-item"><div class="tl-dot ${dc}"></div><div class="tl-content"><div class="tl-time">${formatTime(t.timestamp)}</div><div class="tl-desc">${t.description||''}</div></div></div>`;
+    }).join('')+'</div>';
+  } else {
+    pt.innerHTML=`<div style="padding:14px;font-family:var(--mono);font-size:10px;color:var(--text-muted)">No timeline data for ${s.src_ip}</div>`;
+  }
+
+  ph.innerHTML=buildHexView(s);
+}
+
+function fw(key,val){
+  return `<div class="fivewh-row"><div class="fivewh-key">${key}</div><div class="fivewh-val">${val}</div></div>`;
+}
+
+function buildHexView(s){
+  const rows=[
+    ['00000000','47 45 54 20 2f 61 70 69 2f 76 31 2f 64 61 74 61','GET /api/v1/data '],
+    ['00000010','20 48 54 54 50 2f 31 2e 31 0d 0a 48 6f 73 74 3a',' HTTP/1.1..Host:'],
+    ['00000020','20 65 78 61 6d 70 6c 65 2e 63 6f 6d 0d 0a 41 75',' example.com..Au'],
+    ['00000030','74 68 6f 72 69 7a 61 74 69 6f 6e 3a 20 42 61 73','thorization: Bas'],
+    ['00000040','69 63 20 64 47 56 7a 64 44 6f 79 4d 41 3d 3d 0d','ic dGVzdDoyMA==.'],
+    ['00000050','0a 43 6f 6e 74 65 6e 74 2d 54 79 70 65 3a 20 61','.Content-Type: a'],
+  ];
+  const dlp=s.dlp_hits||[];
+  let html=`<div style="margin-bottom:8px;font-family:var(--mono);font-size:10px;color:var(--cyan-dim)">FLOW: ${s.src_ip} → ${s.dst_ip||'?'} [${s.protocol||'TCP'}]${s.hex_offset!=null?' | DLP @ 0x'+s.hex_offset.toString(16).toUpperCase().padStart(4,'0'):''}</div>`;
+  html+=`<div class="hex-view">`;
+  rows.forEach((r,i)=>{
+    const isDlp=dlp.length>0&&i===3;
+    html+=`<span class="hex-header">${r[0]}  </span>`;
+    html+=isDlp?`<span class="hex-hit">${r[1]}</span>`:`<span class="hex-normal">${r[1]}</span>`;
+    html+=`  <span style="color:var(--text-muted)">${r[2]}</span>\n`;
+  });
+  if(dlp.length) html+=`\n<span class="hex-hit">▶ DLP: ${dlp.map(h=>h.pattern_name).join(', ')}</span>`;
+  html+=`</div>`;
+  return html;
+}
+
+// Tab switching
+function switchTab(tab){
+  activeTab=tab;
+  ['detail','timeline','hex'].forEach(t=>{
+    const cap=t.charAt(0).toUpperCase()+t.slice(1);
+    document.getElementById('tab'+cap).classList.toggle('active',t===tab);
+    document.getElementById('panel'+cap).style.display=t===tab?'':'none';
+  });
+}
+
+// Render entities
+function renderEntities(){
+  const list=document.getElementById('entityList');
+  list.innerHTML='';
+  [...entities].sort((a,b)=>b.risk_score-a.risk_score).slice(0,40).forEach(e=>{
+    const row=document.createElement('div');
+    row.className='entity-row';
+    const rc=e.risk_score>=7?'var(--red)':e.risk_score>=4?'var(--amber)':'var(--cyan-dim)';
+    const flags=(e.flags||[]).map(f=>{
+      const fc=f==='beaconing'?'flag-beacon':f==='port_scan'?'flag-scan':f==='internal_pivot'?'flag-pivot':f==='data_exfil'?'flag-exfil':'flag-bad';
+      return `<div class="flag-dot ${fc}" title="${f}"></div>`;
+    }).join('');
+    row.innerHTML=`
+      <div>
+        <div class="entity-ip">${e.ip_address}</div>
+        <div class="entity-flags">${flags}</div>
+      </div>
+      <div>
+        <div class="risk-bar-wrap"><div class="risk-bar" style="width:${Math.min(e.risk_score*10,100)}%;background:${rc}"></div></div>
+        <div class="risk-val" style="color:${rc}">${e.risk_score.toFixed(1)}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right">${e.strike_count||0}⚡</div>
+    `;
+    row.onclick=()=>{
+      const es=strikes.find(s=>s.src_ip===e.ip_address);
+      if(es){selectedStrike=es;renderStrikes();renderDetail();}
+    };
+    list.appendChild(row);
+  });
+  document.getElementById('entityCount').textContent=entities.length+' tracked';
+  document.getElementById('topEntities').textContent=entities.length;
+  document.getElementById('chipHigh').textContent=entities.filter(e=>e.risk_score>=7).length;
+  document.getElementById('chipFlags').textContent=entities.filter(e=>e.flags&&e.flags.length).length;
+}
+
+// Add strike
+function addStrike(s){
+  strikes.push(s);
+  flowCount++;
+  document.getElementById('topFlows').textContent=flowCount;
+  const sev=(s.severity||5)/10;
+  const type=s.strike_type==='STRIKE-005'||s.strike_type==='STRIKE-002'?'strike':'dlp';
+  for(let i=0;i<6;i++) setTimeout(()=>pushWaterfallColumn(sev*(1-i*0.12),type),i*80);
+  renderStrikes();
+}
+
+// WebSocket
+function connectWS(){
+  try{
+    ws=new WebSocket(WS);
+    ws.onopen=()=>{
+      const b=document.getElementById('connBadge');
+      const d=document.getElementById('statusDot');
+      b.textContent='LIVE';b.style.borderColor='var(--cyan)';b.style.color='var(--cyan)';
+      d.style.background='var(--cyan)';d.style.boxShadow='0 0 6px var(--cyan)';
+    };
+    ws.onmessage=(ev)=>{
+      try{const m=JSON.parse(ev.data);if(m.type==='strike')addStrike(m.data);}catch(e){}
+    };
+    ws.onclose=()=>{
+      const b=document.getElementById('connBadge');
+      const d=document.getElementById('statusDot');
+      b.textContent='OFFLINE';b.style.borderColor='var(--text-muted)';b.style.color='var(--text-muted)';
+      d.style.background='var(--text-muted)';d.style.boxShadow='none';
+      setTimeout(connectWS,5000);
+    };
+    ws.onerror=()=>ws.close();
+  }catch(e){}
+}
+
+// API fetches
+async function fetchStrikes(){
+  try{
+    const r=await fetch(API+'/strikes?limit=100&since_hours=24');
+    if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length){strikes=d;renderStrikes();}}
+  }catch(e){}
+}
+async function fetchEntities(){
+  try{
+    const r=await fetch(API+'/entities?limit=200');
+    if(r.ok){const d=await r.json();if(Array.isArray(d)){entities=d;renderEntities();}}
+  }catch(e){}
+}
+async function fetchStats(){
+  try{
+    const r=await fetch(API+'/stats');
+    if(r.ok){
+      const d=await r.json();
+      if(d.database){
+        document.getElementById('topFlows').textContent=d.database.total_flows||flowCount;
+      }
+    }
+  }catch(e){}
+}
+
+// Demo data (when backend is offline)
+function loadDemoData(){
+  strikes=[
+    {strike_id:'a1',strike_type:'STRIKE-002',severity:10,timestamp:new Date(Date.now()-120000).toISOString(),src_ip:'10.0.0.23',dst_ip:'185.220.101.34',dst_port:443,protocol:'TCP',who:'10.0.0.23 [Linux] [INTERNAL]',what:'Beaconing — 8 connections at 30.0s interval (±0.4ms). C2 heartbeat signature.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-120000).toISOString().slice(0,19)+' UTC (Δt 30012ms)',why:'CV 0.013 below jitter tolerance 0.1. Mean interval 30.02s over 8 samples.',how:'Inspect process list on 10.0.0.23. Block 185.220.101.34. Use STRIKE-REPLAY.',evidence_summary:'beaconing:10.0.0.23→185.220.101.34:interval=30.0s:cv=0.013',dlp_hits:[]},
+    {strike_id:'b2',strike_type:'STRIKE-001',severity:7,timestamp:new Date(Date.now()-300000).toISOString(),src_ip:'192.168.1.44',dst_ip:'10.0.0.1',dst_port:22,protocol:'TCP',who:'192.168.1.44 [Windows] [INTERNAL]',what:'Port scan — 47 distinct destination ports within 600s detection window.',where:'Interface eth0 | INTERNAL | VLAN: untagged',when:new Date(Date.now()-300000).toISOString().slice(0,19)+' UTC',why:'47 ports contacted exceeds threshold of 15. Reconnaissance pattern.',how:'Isolate 192.168.1.44. Review firewall logs.',evidence_summary:'port_scan:192.168.1.44:47_ports',dlp_hits:[]},
+    {strike_id:'c3',strike_type:'STRIKE-005',severity:10,timestamp:new Date(Date.now()-60000).toISOString(),src_ip:'10.0.0.5',dst_ip:'185.220.101.35',dst_port:80,protocol:'TCP',who:'10.0.0.5 [Linux] [INTERNAL]',what:'Known-bad destination — TCP to 185.220.101.35 matches threat intel feed.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-60000).toISOString().slice(0,19)+' UTC',why:'Destination matched threat intel (350 entries). Zero-tolerance policy.',how:'Block 185.220.101.35. Isolate 10.0.0.5. Assume compromised.',evidence_summary:'known_bad:10.0.0.5→185.220.101.35:intel_match',dlp_hits:[{pattern_name:'HTTP_AUTH_BASIC',matched_value:'Authorization: Basic dGVz…[redacted]',hex_offset:64}]},
+    {strike_id:'d4',strike_type:'STRIKE-003',severity:10,timestamp:new Date(Date.now()-480000).toISOString(),src_ip:'10.0.0.88',dst_ip:'104.21.44.11',dst_port:443,protocol:'TCP',who:'10.0.0.88 [Windows] [INTERNAL]',what:'High outbound — 142.3 MB sent to 104.21.44.11 port 443 at 8.4 MB/s.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-480000).toISOString().slice(0,19)+' UTC',why:'Session volume 142.3 MB exceeded 100 MB threshold. 2 DLP hits.',how:'Block session. Identify responsible process. Check DLP hits. Use STRIKE-REPLAY.',evidence_summary:'high_outbound:10.0.0.88→104.21.44.11:142.3MB:port=443',dlp_hits:[{pattern_name:'RSA_PRIVATE_KEY',matched_value:'-----BEGIN RSA PRIVATE KEY…[redacted]',hex_offset:48}]},
+    {strike_id:'e5',strike_type:'STRIKE-004',severity:10,timestamp:new Date(Date.now()-900000).toISOString(),src_ip:'172.16.0.12',dst_ip:'10.0.0.9',dst_port:445,protocol:'TCP',who:'172.16.0.12 [Windows] [INTERNAL]',what:'Internal pivot — contacted 6 distinct internal hosts within 600s window.',where:'Interface eth0 | INTERNAL → INTERNAL | VLAN: untagged',when:new Date(Date.now()-900000).toISOString().slice(0,19)+' UTC',why:'6 internal hosts exceeds pivot threshold of 3. Lateral movement pattern.',how:'Isolate 172.16.0.12. Review auth logs on all 6 hosts. Treat as compromised.',evidence_summary:'internal_pivot:172.16.0.12:6_internal_hosts',dlp_hits:[]},
+  ];
+  entities=[
+    {entity_id:'e1',ip_address:'10.0.0.23',risk_score:8.9,strike_count:3,flags:['beaconing'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-120000).toISOString(),event_type:'strike',description:'⚡ STRIKE-002 — Beaconing to 185.220.101.34'},{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51204 → 185.220.101.34:443 [TCP] 1024B sent'},{timestamp:new Date(Date.now()-600000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51180 → 185.220.101.34:443 [TCP] 988B sent'}]},
+    {entity_id:'e2',ip_address:'10.0.0.5',risk_score:10.0,strike_count:1,flags:['known_bad_ip'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-60000).toISOString(),event_type:'strike',description:'⚡ STRIKE-005 — Known bad: 185.220.101.35'},{timestamp:new Date(Date.now()-90000).toISOString(),event_type:'dlp_hit',description:'DLP hit: HTTP_AUTH_BASIC → 185.220.101.35:80'}]},
+    {entity_id:'e3',ip_address:'10.0.0.88',risk_score:7.5,strike_count:1,flags:['data_exfil'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-480000).toISOString(),event_type:'strike',description:'⚡ STRIKE-003 — 142.3 MB → 104.21.44.11'},{timestamp:new Date(Date.now()-500000).toISOString(),event_type:'dlp_hit',description:'DLP hit: RSA_PRIVATE_KEY in payload'}]},
+    {entity_id:'e4',ip_address:'192.168.1.44',risk_score:6.2,strike_count:1,flags:['port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'strike',description:'⚡ STRIKE-001 — 47 ports scanned'}]},
+    {entity_id:'e5',ip_address:'172.16.0.12',risk_score:9.1,strike_count:2,flags:['internal_pivot','port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-900000).toISOString(),event_type:'strike',description:'⚡ STRIKE-004 — Pivot across 6 internal hosts'}]},
+    {entity_id:'e6',ip_address:'10.0.0.4',risk_score:1.2,strike_count:0,flags:[],os_fingerprint:'macOS (TTL=64)',timeline:[]},
+    {entity_id:'e7',ip_address:'10.0.0.11',risk_score:0.4,strike_count:0,flags:[],os_fingerprint:'Linux (TTL=64)',timeline:[]},
+  ];
+  renderStrikes();
+  renderEntities();
+  document.getElementById('topFlows').textContent='2,841';
+
+  // Animate waterfall
+  const vals=[0.08,0.05,0.12,0.07,0.09,0.88,0.72,0.55,0.38,0.2,0.1,0.07,0.05,0.78,0.6,0.35,0.15,0.07];
+  const types2=['normal','normal','normal','normal','normal','strike','strike','strike','normal','normal','normal','normal','normal','dlp','dlp','normal','normal','normal'];
+  vals.forEach((_,i)=>setTimeout(()=>pushWaterfallColumn(vals[i],types2[i]),i*280));
+}
+
+// Boot
+connectWS();
+fetchStrikes();
+fetchEntities();
+fetchStats();
+setInterval(fetchEntities,15000);
+setInterval(fetchStats,10000);
+setTimeout(()=>{if(!strikes.length&&!entities.length)loadDemoData();},2000);
+</script>
+</body>
+</html>
