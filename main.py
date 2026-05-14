@@ -335,7 +335,11 @@ class PacketStrike:
         Build the FastAPI app. Called after startup() so all engines
         are live before the first request can arrive.
         """
-        self._loop = asyncio.get_event_loop()
+        try:
+            self._loop = asyncio.get_running_loop()
+        except RuntimeError:
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
 
         app, self._ws_manager = create_app(
             settings             = self._settings,
