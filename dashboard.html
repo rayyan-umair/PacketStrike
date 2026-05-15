@@ -167,7 +167,7 @@ canvas#waterfall{display:block;width:100%;height:200px}
       <div class="waterfall-wrap">
         <canvas id="waterfall"></canvas>
         <div class="waterfall-overlay">
-          <div class="wf-label">TRAFFIC SPECTROGRAM — LIVE</div>
+          <div class="wf-label">TRAFFIC SPECTROGRAM - LIVE</div>
           <div class="wf-legend">
             <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--red)"></div>STRIKE</div>
             <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--cyan)"></div>NORMAL</div>
@@ -288,7 +288,7 @@ const STRIKE_CLASS={
 };
 
 function formatTime(iso){
-  if(!iso) return '—';
+  if(!iso) return '-';
   return new Date(iso).toISOString().slice(11,19)+' UTC';
 }
 
@@ -304,7 +304,7 @@ function renderStrikes(){
     div.className='strike-item'+(selectedStrike?.strike_id===s.strike_id?' selected':'')+(i===0?' new':'');
     div.innerHTML=`
       <div class="strike-type ${sc}">${name}</div>
-      <div class="strike-ip">${s.src_ip} <span>→</span> ${s.dst_ip||'—'}</div>
+      <div class="strike-ip">${s.src_ip} <span>→</span> ${s.dst_ip||'-'}</div>
       <div class="strike-time">${formatTime(s.timestamp)}</div>
       <div class="strike-sev ${sevC}">${s.severity>=8?'CRIT':'HIGH'}</div>
     `;
@@ -329,14 +329,14 @@ function renderDetail(){
   const sevC=s.severity>=8?'badge-crit':'badge-high';
 
   pd.innerHTML=`
-    <div class="detail-badge ${sevC}">${s.strike_type} — ${name}</div>
+    <div class="detail-badge ${sevC}">${s.strike_type} - ${name}</div>
     <div class="fivewh">
-      ${fw('WHO',s.who||'—')}
-      ${fw('WHAT',s.what||'—')}
-      ${fw('WHERE',s.where||s.where_field||'—')}
+      ${fw('WHO',s.who||'-')}
+      ${fw('WHAT',s.what||'-')}
+      ${fw('WHERE',s.where||s.where_field||'-')}
       ${fw('WHEN',s.when||s.when_field||formatTime(s.timestamp))}
-      ${fw('WHY',s.why||'—')}
-      ${fw('HOW',s.how||'—')}
+      ${fw('WHY',s.why||'-')}
+      ${fw('HOW',s.how||'-')}
     </div>
     <div class="divider"></div>
     ${s.evidence_summary?`<div style="font-family:var(--mono);font-size:10px;color:var(--text-dim);word-break:break-all;margin-bottom:8px">${s.evidence_summary}</div>`:''}
@@ -492,18 +492,18 @@ async function fetchStats(){
 // Demo data (when backend is offline)
 function loadDemoData(){
   strikes=[
-    {strike_id:'a1',strike_type:'STRIKE-002',severity:10,timestamp:new Date(Date.now()-120000).toISOString(),src_ip:'10.0.0.23',dst_ip:'185.220.101.34',dst_port:443,protocol:'TCP',who:'10.0.0.23 [Linux] [INTERNAL]',what:'Beaconing — 8 connections at 30.0s interval (±0.4ms). C2 heartbeat signature.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-120000).toISOString().slice(0,19)+' UTC (Δt 30012ms)',why:'CV 0.013 below jitter tolerance 0.1. Mean interval 30.02s over 8 samples.',how:'Inspect process list on 10.0.0.23. Block 185.220.101.34. Use STRIKE-REPLAY.',evidence_summary:'beaconing:10.0.0.23→185.220.101.34:interval=30.0s:cv=0.013',dlp_hits:[]},
-    {strike_id:'b2',strike_type:'STRIKE-001',severity:7,timestamp:new Date(Date.now()-300000).toISOString(),src_ip:'192.168.1.44',dst_ip:'10.0.0.1',dst_port:22,protocol:'TCP',who:'192.168.1.44 [Windows] [INTERNAL]',what:'Port scan — 47 distinct destination ports within 600s detection window.',where:'Interface eth0 | INTERNAL | VLAN: untagged',when:new Date(Date.now()-300000).toISOString().slice(0,19)+' UTC',why:'47 ports contacted exceeds threshold of 15. Reconnaissance pattern.',how:'Isolate 192.168.1.44. Review firewall logs.',evidence_summary:'port_scan:192.168.1.44:47_ports',dlp_hits:[]},
-    {strike_id:'c3',strike_type:'STRIKE-005',severity:10,timestamp:new Date(Date.now()-60000).toISOString(),src_ip:'10.0.0.5',dst_ip:'185.220.101.35',dst_port:80,protocol:'TCP',who:'10.0.0.5 [Linux] [INTERNAL]',what:'Known-bad destination — TCP to 185.220.101.35 matches threat intel feed.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-60000).toISOString().slice(0,19)+' UTC',why:'Destination matched threat intel (350 entries). Zero-tolerance policy.',how:'Block 185.220.101.35. Isolate 10.0.0.5. Assume compromised.',evidence_summary:'known_bad:10.0.0.5→185.220.101.35:intel_match',dlp_hits:[{pattern_name:'HTTP_AUTH_BASIC',matched_value:'Authorization: Basic dGVz…[redacted]',hex_offset:64}]},
-    {strike_id:'d4',strike_type:'STRIKE-003',severity:10,timestamp:new Date(Date.now()-480000).toISOString(),src_ip:'10.0.0.88',dst_ip:'104.21.44.11',dst_port:443,protocol:'TCP',who:'10.0.0.88 [Windows] [INTERNAL]',what:'High outbound — 142.3 MB sent to 104.21.44.11 port 443 at 8.4 MB/s.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-480000).toISOString().slice(0,19)+' UTC',why:'Session volume 142.3 MB exceeded 100 MB threshold. 2 DLP hits.',how:'Block session. Identify responsible process. Check DLP hits. Use STRIKE-REPLAY.',evidence_summary:'high_outbound:10.0.0.88→104.21.44.11:142.3MB:port=443',dlp_hits:[{pattern_name:'RSA_PRIVATE_KEY',matched_value:'-----BEGIN RSA PRIVATE KEY…[redacted]',hex_offset:48}]},
-    {strike_id:'e5',strike_type:'STRIKE-004',severity:10,timestamp:new Date(Date.now()-900000).toISOString(),src_ip:'172.16.0.12',dst_ip:'10.0.0.9',dst_port:445,protocol:'TCP',who:'172.16.0.12 [Windows] [INTERNAL]',what:'Internal pivot — contacted 6 distinct internal hosts within 600s window.',where:'Interface eth0 | INTERNAL → INTERNAL | VLAN: untagged',when:new Date(Date.now()-900000).toISOString().slice(0,19)+' UTC',why:'6 internal hosts exceeds pivot threshold of 3. Lateral movement pattern.',how:'Isolate 172.16.0.12. Review auth logs on all 6 hosts. Treat as compromised.',evidence_summary:'internal_pivot:172.16.0.12:6_internal_hosts',dlp_hits:[]},
+    {strike_id:'a1',strike_type:'STRIKE-002',severity:10,timestamp:new Date(Date.now()-120000).toISOString(),src_ip:'10.0.0.23',dst_ip:'185.220.101.34',dst_port:443,protocol:'TCP',who:'10.0.0.23 [Linux] [INTERNAL]',what:'Beaconing - 8 connections at 30.0s interval (±0.4ms). C2 heartbeat signature.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-120000).toISOString().slice(0,19)+' UTC (Δt 30012ms)',why:'CV 0.013 below jitter tolerance 0.1. Mean interval 30.02s over 8 samples.',how:'Inspect process list on 10.0.0.23. Block 185.220.101.34. Use STRIKE-REPLAY.',evidence_summary:'beaconing:10.0.0.23→185.220.101.34:interval=30.0s:cv=0.013',dlp_hits:[]},
+    {strike_id:'b2',strike_type:'STRIKE-001',severity:7,timestamp:new Date(Date.now()-300000).toISOString(),src_ip:'192.168.1.44',dst_ip:'10.0.0.1',dst_port:22,protocol:'TCP',who:'192.168.1.44 [Windows] [INTERNAL]',what:'Port scan - 47 distinct destination ports within 600s detection window.',where:'Interface eth0 | INTERNAL | VLAN: untagged',when:new Date(Date.now()-300000).toISOString().slice(0,19)+' UTC',why:'47 ports contacted exceeds threshold of 15. Reconnaissance pattern.',how:'Isolate 192.168.1.44. Review firewall logs.',evidence_summary:'port_scan:192.168.1.44:47_ports',dlp_hits:[]},
+    {strike_id:'c3',strike_type:'STRIKE-005',severity:10,timestamp:new Date(Date.now()-60000).toISOString(),src_ip:'10.0.0.5',dst_ip:'185.220.101.35',dst_port:80,protocol:'TCP',who:'10.0.0.5 [Linux] [INTERNAL]',what:'Known-bad destination - TCP to 185.220.101.35 matches threat intel feed.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-60000).toISOString().slice(0,19)+' UTC',why:'Destination matched threat intel (350 entries). Zero-tolerance policy.',how:'Block 185.220.101.35. Isolate 10.0.0.5. Assume compromised.',evidence_summary:'known_bad:10.0.0.5→185.220.101.35:intel_match',dlp_hits:[{pattern_name:'HTTP_AUTH_BASIC',matched_value:'Authorization: Basic dGVz…[redacted]',hex_offset:64}]},
+    {strike_id:'d4',strike_type:'STRIKE-003',severity:10,timestamp:new Date(Date.now()-480000).toISOString(),src_ip:'10.0.0.88',dst_ip:'104.21.44.11',dst_port:443,protocol:'TCP',who:'10.0.0.88 [Windows] [INTERNAL]',what:'High outbound - 142.3 MB sent to 104.21.44.11 port 443 at 8.4 MB/s.',where:'Interface eth0 | INTERNAL → EXTERNAL | VLAN: untagged',when:new Date(Date.now()-480000).toISOString().slice(0,19)+' UTC',why:'Session volume 142.3 MB exceeded 100 MB threshold. 2 DLP hits.',how:'Block session. Identify responsible process. Check DLP hits. Use STRIKE-REPLAY.',evidence_summary:'high_outbound:10.0.0.88→104.21.44.11:142.3MB:port=443',dlp_hits:[{pattern_name:'RSA_PRIVATE_KEY',matched_value:'-----BEGIN RSA PRIVATE KEY…[redacted]',hex_offset:48}]},
+    {strike_id:'e5',strike_type:'STRIKE-004',severity:10,timestamp:new Date(Date.now()-900000).toISOString(),src_ip:'172.16.0.12',dst_ip:'10.0.0.9',dst_port:445,protocol:'TCP',who:'172.16.0.12 [Windows] [INTERNAL]',what:'Internal pivot - contacted 6 distinct internal hosts within 600s window.',where:'Interface eth0 | INTERNAL → INTERNAL | VLAN: untagged',when:new Date(Date.now()-900000).toISOString().slice(0,19)+' UTC',why:'6 internal hosts exceeds pivot threshold of 3. Lateral movement pattern.',how:'Isolate 172.16.0.12. Review auth logs on all 6 hosts. Treat as compromised.',evidence_summary:'internal_pivot:172.16.0.12:6_internal_hosts',dlp_hits:[]},
   ];
   entities=[
-    {entity_id:'e1',ip_address:'10.0.0.23',risk_score:8.9,strike_count:3,flags:['beaconing'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-120000).toISOString(),event_type:'strike',description:'⚡ STRIKE-002 — Beaconing to 185.220.101.34'},{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51204 → 185.220.101.34:443 [TCP] 1024B sent'},{timestamp:new Date(Date.now()-600000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51180 → 185.220.101.34:443 [TCP] 988B sent'}]},
-    {entity_id:'e2',ip_address:'10.0.0.5',risk_score:10.0,strike_count:1,flags:['known_bad_ip'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-60000).toISOString(),event_type:'strike',description:'⚡ STRIKE-005 — Known bad: 185.220.101.35'},{timestamp:new Date(Date.now()-90000).toISOString(),event_type:'dlp_hit',description:'DLP hit: HTTP_AUTH_BASIC → 185.220.101.35:80'}]},
-    {entity_id:'e3',ip_address:'10.0.0.88',risk_score:7.5,strike_count:1,flags:['data_exfil'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-480000).toISOString(),event_type:'strike',description:'⚡ STRIKE-003 — 142.3 MB → 104.21.44.11'},{timestamp:new Date(Date.now()-500000).toISOString(),event_type:'dlp_hit',description:'DLP hit: RSA_PRIVATE_KEY in payload'}]},
-    {entity_id:'e4',ip_address:'192.168.1.44',risk_score:6.2,strike_count:1,flags:['port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'strike',description:'⚡ STRIKE-001 — 47 ports scanned'}]},
-    {entity_id:'e5',ip_address:'172.16.0.12',risk_score:9.1,strike_count:2,flags:['internal_pivot','port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-900000).toISOString(),event_type:'strike',description:'⚡ STRIKE-004 — Pivot across 6 internal hosts'}]},
+    {entity_id:'e1',ip_address:'10.0.0.23',risk_score:8.9,strike_count:3,flags:['beaconing'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-120000).toISOString(),event_type:'strike',description:'⚡ STRIKE-002 - Beaconing to 185.220.101.34'},{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51204 → 185.220.101.34:443 [TCP] 1024B sent'},{timestamp:new Date(Date.now()-600000).toISOString(),event_type:'flow',description:'Flow: 10.0.0.23:51180 → 185.220.101.34:443 [TCP] 988B sent'}]},
+    {entity_id:'e2',ip_address:'10.0.0.5',risk_score:10.0,strike_count:1,flags:['known_bad_ip'],os_fingerprint:'Linux (TTL=64)',timeline:[{timestamp:new Date(Date.now()-60000).toISOString(),event_type:'strike',description:'⚡ STRIKE-005 - Known bad: 185.220.101.35'},{timestamp:new Date(Date.now()-90000).toISOString(),event_type:'dlp_hit',description:'DLP hit: HTTP_AUTH_BASIC → 185.220.101.35:80'}]},
+    {entity_id:'e3',ip_address:'10.0.0.88',risk_score:7.5,strike_count:1,flags:['data_exfil'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-480000).toISOString(),event_type:'strike',description:'⚡ STRIKE-003 - 142.3 MB → 104.21.44.11'},{timestamp:new Date(Date.now()-500000).toISOString(),event_type:'dlp_hit',description:'DLP hit: RSA_PRIVATE_KEY in payload'}]},
+    {entity_id:'e4',ip_address:'192.168.1.44',risk_score:6.2,strike_count:1,flags:['port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-300000).toISOString(),event_type:'strike',description:'⚡ STRIKE-001 - 47 ports scanned'}]},
+    {entity_id:'e5',ip_address:'172.16.0.12',risk_score:9.1,strike_count:2,flags:['internal_pivot','port_scan'],os_fingerprint:'Windows (TTL=128)',timeline:[{timestamp:new Date(Date.now()-900000).toISOString(),event_type:'strike',description:'⚡ STRIKE-004 - Pivot across 6 internal hosts'}]},
     {entity_id:'e6',ip_address:'10.0.0.4',risk_score:1.2,strike_count:0,flags:[],os_fingerprint:'macOS (TTL=64)',timeline:[]},
     {entity_id:'e7',ip_address:'10.0.0.11',risk_score:0.4,strike_count:0,flags:[],os_fingerprint:'Linux (TTL=64)',timeline:[]},
   ];

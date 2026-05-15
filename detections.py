@@ -1,21 +1,21 @@
 """
-PacketStrike — Strike Detection Engine
-detections.py — The five core behavioral detections
+PacketStrike - Strike Detection Engine
+detections.py - The five core behavioral detections
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
 Purpose : Implements the five PacketStrike strike detections. Each
           detection operates on the entity state and recent flow history
           maintained by the entity engine. Detections are stateless
-          functions — they receive context and return a StrikeEvent or
+          functions - they receive context and return a StrikeEvent or
           None. No storage. No entity mutation. No side effects.
           The entity engine calls these after every flow is processed.
 
-          STRIKE-001 — Port Scan
-          STRIKE-002 — Beaconing
-          STRIKE-003 — High Outbound Transfer
-          STRIKE-004 — Internal Pivot
-          STRIKE-005 — Known-Bad Destination
+          STRIKE-001 - Port Scan
+          STRIKE-002 - Beaconing
+          STRIKE-003 - High Outbound Transfer
+          STRIKE-004 - Internal Pivot
+          STRIKE-005 - Known-Bad Destination
 
 Contact : rayyanxumair@gmail.com
 GitHub  : github.com/rayyan-umair/PacketStrike
@@ -121,7 +121,7 @@ class ThreatIntelStore:
                     ipaddress.ip_address(entry)
                     bad_ips.add(entry)
                 except ValueError:
-                    # Not an IP — treat as domain
+                    # Not an IP - treat as domain
                     bad_domains.add(entry.lower())
 
         self._bad_ips     = bad_ips
@@ -201,7 +201,7 @@ def _classify_zone(ip: str) -> str:
     return "EXTERNAL"
 
 
-# ── STRIKE-001 — Port Scan ────────────────────────────────────────────────────
+# ── STRIKE-001 - Port Scan ────────────────────────────────────────────────────
 
 def detect_port_scan(
     flow    : FlowRecord,
@@ -210,7 +210,7 @@ def detect_port_scan(
     cooldown: CooldownTracker,
 ) -> Optional[StrikeEvent]:
     """
-    STRIKE-001 — Port Scan
+    STRIKE-001 - Port Scan
 
     Fires when a single source IP contacts more distinct destination ports
     than port_scan_threshold within the detection window.
@@ -245,7 +245,7 @@ def detect_port_scan(
         entity      = entity,
         who  = f"{flow.src_ip}{os_hint} [{zone}]",
         what = (
-            f"Port scan detected — {unique_ports} distinct destination ports "
+            f"Port scan detected - {unique_ports} distinct destination ports "
             f"contacted within the {settings.detection_window_seconds}s window. "
             f"Sample ports: {port_list}{extra}."
         ),
@@ -269,7 +269,7 @@ def detect_port_scan(
     )
 
 
-# ── STRIKE-002 — Beaconing ────────────────────────────────────────────────────
+# ── STRIKE-002 - Beaconing ────────────────────────────────────────────────────
 
 def detect_beaconing(
     flow             : FlowRecord,
@@ -279,10 +279,10 @@ def detect_beaconing(
     cooldown         : CooldownTracker,
 ) -> Optional[StrikeEvent]:
     """
-    STRIKE-002 — Beaconing
+    STRIKE-002 - Beaconing
 
     Fires when outbound connection intervals from a source IP to a single
-    destination are suspiciously regular — low coefficient of variation
+    destination are suspiciously regular - low coefficient of variation
     across at least beaconing_min_intervals samples.
 
     Indicator of:
@@ -327,7 +327,7 @@ def detect_beaconing(
         entity      = entity,
         who  = f"{flow.src_ip}{os_hint} [{zone}]",
         what = (
-            f"Beaconing behaviour detected — {len(recent_intervals)} outbound "
+            f"Beaconing behaviour detected - {len(recent_intervals)} outbound "
             f"connections to {flow.dst_ip} [{dst_zone}] at a suspiciously regular "
             f"interval of {interval_s:.1f}s (±{jitter_ms:.1f}ms jitter). "
             f"Consistent with C2 malware heartbeat."
@@ -358,7 +358,7 @@ def detect_beaconing(
     )
 
 
-# ── STRIKE-003 — High Outbound Transfer ───────────────────────────────────────
+# ── STRIKE-003 - High Outbound Transfer ───────────────────────────────────────
 
 def detect_high_outbound(
     flow    : FlowRecord,
@@ -367,7 +367,7 @@ def detect_high_outbound(
     cooldown: CooldownTracker,
 ) -> Optional[StrikeEvent]:
     """
-    STRIKE-003 — High Outbound Transfer
+    STRIKE-003 - High Outbound Transfer
 
     Fires when a single session's outbound byte count exceeds the
     exfiltration_threshold_bytes setting.
@@ -406,7 +406,7 @@ def detect_high_outbound(
         entity      = entity,
         who  = f"{flow.src_ip}{os_hint} [{zone}]",
         what = (
-            f"High outbound transfer detected — {mb_sent:.1f} MB sent from "
+            f"High outbound transfer detected - {mb_sent:.1f} MB sent from "
             f"{flow.src_ip} [{zone}] to {flow.dst_ip} [{dst_zone}] "
             f"on port {flow.dst_port} ({flow.dpi.dissected_protocol.value}). "
             f"Transfer rate: {rate_mbps:.2f} MB/s."
@@ -428,7 +428,7 @@ def detect_high_outbound(
         how   = (
             f"Block the session at {flow.interface} immediately if still active. "
             f"Identify the process responsible on {flow.src_ip}. "
-            f"Determine what data was transferred — check DLP hits on this flow. "
+            f"Determine what data was transferred - check DLP hits on this flow. "
             f"Use STRIKE-REPLAY to reconstruct the full transfer."
         ),
         evidence = (
@@ -438,7 +438,7 @@ def detect_high_outbound(
     )
 
 
-# ── STRIKE-004 — Internal Pivot ───────────────────────────────────────────────
+# ── STRIKE-004 - Internal Pivot ───────────────────────────────────────────────
 
 def detect_internal_pivot(
     flow    : FlowRecord,
@@ -447,7 +447,7 @@ def detect_internal_pivot(
     cooldown: CooldownTracker,
 ) -> Optional[StrikeEvent]:
     """
-    STRIKE-004 — Internal Pivot
+    STRIKE-004 - Internal Pivot
 
     Fires when a source IP contacts more distinct internal destination
     hosts than pivot_host_threshold within the detection window.
@@ -491,7 +491,7 @@ def detect_internal_pivot(
         entity      = entity,
         who  = f"{flow.src_ip}{os_hint} [{zone}]",
         what = (
-            f"Internal pivot detected — {flow.src_ip} [{zone}] contacted "
+            f"Internal pivot detected - {flow.src_ip} [{zone}] contacted "
             f"{unique_internal} distinct internal hosts within the "
             f"{settings.detection_window_seconds}s detection window. "
             f"Sample targets: {host_list}{extra}."
@@ -522,7 +522,7 @@ def detect_internal_pivot(
     )
 
 
-# ── STRIKE-005 — Known-Bad Destination ────────────────────────────────────────
+# ── STRIKE-005 - Known-Bad Destination ────────────────────────────────────────
 
 def detect_known_bad(
     flow    : FlowRecord,
@@ -531,7 +531,7 @@ def detect_known_bad(
     cooldown: CooldownTracker,
 ) -> Optional[StrikeEvent]:
     """
-    STRIKE-005 — Known-Bad Destination
+    STRIKE-005 - Known-Bad Destination
 
     Fires immediately when a destination IP matches the threat intel feed.
     No threshold. No window. Zero tolerance.
@@ -568,7 +568,7 @@ def detect_known_bad(
         entity      = entity,
         who  = f"{flow.src_ip}{os_hint} [{zone}]",
         what = (
-            f"Known-bad destination contacted — {flow.src_ip} [{zone}] "
+            f"Known-bad destination contacted - {flow.src_ip} [{zone}] "
             f"established a {flow.protocol.value} connection to {flow.dst_ip} "
             f"[{dst_zone}] port {flow.dst_port}, which is listed in the "
             f"active threat intelligence feed."
@@ -584,7 +584,7 @@ def detect_known_bad(
         why   = (
             f"Destination IP {flow.dst_ip} matched the threat intelligence feed "
             f"({intel.stats['entry_count']} entries loaded). "
-            f"Zero-tolerance policy — no threshold required."
+            f"Zero-tolerance policy - no threshold required."
         ),
         how   = (
             f"Block {flow.dst_ip} at the perimeter firewall immediately. "

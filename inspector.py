@@ -1,6 +1,6 @@
 """
-PacketStrike — Deep Packet Inspection Engine
-inspector.py — Entropy scoring, DLP scanning, protocol anomaly detection
+PacketStrike - Deep Packet Inspection Engine
+inspector.py - Entropy scoring, DLP scanning, protocol anomaly detection
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -13,7 +13,7 @@ Purpose : The DPI consumer layer of PacketStrike. Receives FlowRecords
             2. Cleartext sensitivity scanning (DLP)
             3. Protocol anomaly detection (RFC violations)
           No detection logic lives here. No entity logic lives here.
-          This layer only enriches — it does not decide.
+          This layer only enriches - it does not decide.
 Contact : rayyanxumair@gmail.com
 GitHub  : github.com/rayyan-umair/PacketStrike
 
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # ── DLP Pattern Registry ──────────────────────────────────────────────────────
 # Each entry: (pattern_name, compiled_regex)
 # Patterns are applied to the raw decoded payload string.
-# Matches are redacted before storage — only offset and pattern name persist.
+# Matches are redacted before storage - only offset and pattern name persist.
 
 _DLP_PATTERNS: List[Tuple[str, re.Pattern]] = [
     # ── Credentials ───────────────────────────────────────────────────────────
@@ -133,7 +133,7 @@ _DLP_PATTERNS: List[Tuple[str, re.Pattern]] = [
 # check_function receives the FlowRecord and returns True if anomalous.
 
 def _http_on_443(flow: FlowRecord) -> bool:
-    """HTTP plaintext traffic on port 443 — should be HTTPS/TLS."""
+    """HTTP plaintext traffic on port 443 - should be HTTPS/TLS."""
     return (
         flow.dst_port == 443
         and flow.dpi.dissected_protocol == Protocol.HTTP
@@ -143,7 +143,7 @@ def _http_on_443(flow: FlowRecord) -> bool:
 def _dns_oversized(flow: FlowRecord) -> bool:
     """
     DNS packet exceeding 512 bytes without EDNS extension.
-    Classic DNS tunneling indicator — legitimate DNS rarely exceeds 512 bytes.
+    Classic DNS tunneling indicator - legitimate DNS rarely exceeds 512 bytes.
     """
     return (
         flow.protocol == Protocol.UDP
@@ -152,7 +152,7 @@ def _dns_oversized(flow: FlowRecord) -> bool:
     )
 
 def _non_dns_on_53(flow: FlowRecord) -> bool:
-    """Non-DNS traffic on port 53 — possible DNS tunneling or covert channel."""
+    """Non-DNS traffic on port 53 - possible DNS tunneling or covert channel."""
     return (
         flow.dst_port == 53
         and flow.dpi.dissected_protocol not in (Protocol.DNS, Protocol.UNKNOWN)
@@ -167,16 +167,16 @@ def _smtp_on_unexpected_port(flow: FlowRecord) -> bool:
     )
 
 def _ftp_cleartext(flow: FlowRecord) -> bool:
-    """FTP credential exchange detected — inherently cleartext protocol."""
+    """FTP credential exchange detected - inherently cleartext protocol."""
     return (
         flow.dpi.dissected_protocol == Protocol.FTP
         and any(hit.pattern_name in ("FTP_USER", "FTP_PASS") for hit in flow.dpi.dlp_hits)
     )
 
 _ANOMALY_RULES: List[Tuple[str, callable]] = [
-    ("HTTP traffic detected on port 443 — expected TLS/HTTPS",      _http_on_443),
-    ("Oversized DNS packet (>512 bytes) — possible DNS tunneling",   _dns_oversized),
-    ("Non-DNS traffic on port 53 — possible covert channel",         _non_dns_on_53),
+    ("HTTP traffic detected on port 443 - expected TLS/HTTPS",      _http_on_443),
+    ("Oversized DNS packet (>512 bytes) - possible DNS tunneling",   _dns_oversized),
+    ("Non-DNS traffic on port 53 - possible covert channel",         _non_dns_on_53),
     ("SMTP traffic on non-standard port",                            _smtp_on_unexpected_port),
     ("FTP credential exchange in cleartext",                         _ftp_cleartext),
 ]
@@ -218,7 +218,7 @@ def _shannon_entropy(data: bytes) -> float:
 def _dissect_protocol(flow: FlowRecord, payload: bytes) -> Protocol:
     """
     Refine the protocol classification using payload signatures.
-    The capture layer makes a port-based guess — this confirms or corrects it.
+    The capture layer makes a port-based guess - this confirms or corrects it.
     """
     if not payload:
         return flow.protocol
@@ -238,7 +238,7 @@ def _dissect_protocol(flow: FlowRecord, payload: bytes) -> Protocol:
                             b"250 ", b"220 ", b"AUTH ")):
         return Protocol.SMTP
 
-    # DNS — check port as primary signal (payload structure is binary)
+    # DNS - check port as primary signal (payload structure is binary)
     if flow.dst_port == 53 or flow.src_port == 53:
         return Protocol.DNS
 
@@ -251,7 +251,7 @@ def _dissect_protocol(flow: FlowRecord, payload: bytes) -> Protocol:
 def _fingerprint_os(ttl: Optional[int], window_size: Optional[int]) -> Optional[str]:
     """
     Estimate the source OS from TTL and TCP window size.
-    This is Nmap-style passive fingerprinting — probabilistic, not definitive.
+    This is Nmap-style passive fingerprinting - probabilistic, not definitive.
 
     Common TTL defaults:
       Linux/Android : 64
@@ -262,7 +262,7 @@ def _fingerprint_os(ttl: Optional[int], window_size: Optional[int]) -> Optional[
     if ttl is None:
         return None
 
-    # TTL buckets — OS sets initial TTL, we observe the remaining value
+    # TTL buckets - OS sets initial TTL, we observe the remaining value
     if ttl <= 64:
         os_guess = "Linux / macOS / Android"
     elif ttl <= 128:
@@ -298,7 +298,7 @@ class InspectionEngine:
       2. DLP regex scanning
       3. Protocol anomaly detection
 
-    This class is stateless — safe to call from multiple threads.
+    This class is stateless - safe to call from multiple threads.
 
     Usage:
         engine = InspectionEngine(settings)
@@ -318,7 +318,7 @@ class InspectionEngine:
         """
         Run all DPI passes on a FlowRecord.
         Returns the same flow with flow.dpi populated.
-        Always returns a flow — never raises.
+        Always returns a flow - never raises.
         """
         try:
             return self._inspect_safe(flow)
@@ -329,7 +329,7 @@ class InspectionEngine:
     # ── Internal ──────────────────────────────────────────────────────────────
 
     def _inspect_safe(self, flow: FlowRecord) -> FlowRecord:
-        """Inner inspection — exceptions propagate to inspect() wrapper."""
+        """Inner inspection - exceptions propagate to inspect() wrapper."""
         self._inspected += 1
 
         # ── Decode payload ────────────────────────────────────────────────────
@@ -421,7 +421,7 @@ class InspectionEngine:
         for pattern_name, pattern in _DLP_PATTERNS:
             for match in pattern.finditer(payload):
                 raw_match = match.group(0)
-                # Truncate and sanitise — never store full credentials
+                # Truncate and sanitise - never store full credentials
                 display_value = raw_match[:40].decode("utf-8", errors="replace")
                 if len(raw_match) > 40:
                     display_value += "…[redacted]"

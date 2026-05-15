@@ -1,4 +1,4 @@
-# PacketStrike — Python Dependencies
+# PacketStrike - Python Dependencies
 # Built by Rayyan Umair
 # "Silence the noise, strike the signal."
 #

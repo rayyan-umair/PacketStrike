@@ -1,11 +1,11 @@
 """
-PacketStrike — Database Layer
-database.py — DuckDB packet spooler, schema management, Parquet archiving
+PacketStrike - Database Layer
+database.py - DuckDB packet spooler, schema management, Parquet archiving
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
 Purpose : All storage operations for PacketStrike. DuckDB acts as the
-          live packet spooler — fast enough for real-time ingestion,
+          live packet spooler - fast enough for real-time ingestion,
           powerful enough for SQL-based investigation queries.
           Parquet handles long-term compressed historical archives.
           Nothing outside this file touches the database directly.
@@ -159,7 +159,7 @@ class Database:
 
     Wraps DuckDB for all read/write operations.
     One instance is created at startup and shared across the application.
-    All methods are synchronous — DuckDB is not async-native.
+    All methods are synchronous - DuckDB is not async-native.
 
     Usage:
         db = Database(settings)
@@ -300,7 +300,7 @@ class Database:
     def query_flows_sql(self, sql: str) -> List[dict]:
         """
         Execute a raw SQL SELECT against the flows table.
-        For analyst investigation queries — e.g.:
+        For analyst investigation queries - e.g.:
             SELECT * FROM flows WHERE payload LIKE '%password%'
         Read-only. Mutations are not permitted here.
         """

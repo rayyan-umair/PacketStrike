@@ -1,6 +1,6 @@
 """
-PacketStrike — Capture Layer
-capture.py — Live interface capture and PCAP replay producer
+PacketStrike - Capture Layer
+capture.py - Live interface capture and PCAP replay producer
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -67,7 +67,7 @@ _PORT_PROTOCOL_MAP: dict[int, Protocol] = {
 def _resolve_protocol(pkt) -> Protocol:
     """
     Guess the application protocol from port numbers and packet layers.
-    This is a best-effort classification — the DPI layer refines it later.
+    This is a best-effort classification - the DPI layer refines it later.
     """
     if SCAPY_AVAILABLE:
         if pkt.haslayer(DNS):
@@ -85,7 +85,7 @@ def _resolve_protocol(pkt) -> Protocol:
 
 
 def _extract_vlan(pkt) -> Optional[int]:
-    """Extract VLAN tag ID if present — critical for VLAN hopping detection."""
+    """Extract VLAN tag ID if present - critical for VLAN hopping detection."""
     if SCAPY_AVAILABLE and pkt.haslayer(Dot1Q):
         return pkt[Dot1Q].vlan
     return None
@@ -169,7 +169,7 @@ class CaptureEngine:
     normalises each frame into a FlowRecord, and pushes it onto the
     shared internal queue for the Strike Engine to consume.
 
-    Runs in its own daemon thread — non-blocking to the FastAPI server.
+    Runs in its own daemon thread - non-blocking to the FastAPI server.
 
     Usage:
         engine = CaptureEngine(settings, flow_queue)
@@ -253,7 +253,7 @@ class CaptureEngine:
             )
         except PermissionError:
             logger.error(
-                "Permission denied — live capture requires root or CAP_NET_RAW. "
+                "Permission denied - live capture requires root or CAP_NET_RAW. "
                 "Try: sudo python main.py"
             )
             self._running = False
@@ -287,7 +287,7 @@ class CaptureEngine:
                 if not self._running:
                     break
                 self._handle_packet(pkt)
-                time.sleep(0.001)       # Throttle replay — avoid instant queue flood
+                time.sleep(0.001)       # Throttle replay - avoid instant queue flood
             logger.info("PCAP replay complete.")
         except Exception as e:
             logger.error(f"PCAP replay error: {e}")
@@ -311,7 +311,7 @@ class CaptureEngine:
         )
 
         if flow is None:
-            return     # Non-IP packet — ignored
+            return     # Non-IP packet - ignored
 
         try:
             self._queue.put_nowait(flow)
@@ -319,7 +319,7 @@ class CaptureEngine:
             self._packets_dropped += 1
             if self._packets_dropped % 100 == 0:
                 logger.warning(
-                    f"Queue full — dropped {self._packets_dropped} packets total. "
+                    f"Queue full - dropped {self._packets_dropped} packets total. "
                     f"Consider increasing CAPTURE_QUEUE_MAXSIZE."
                 )
 

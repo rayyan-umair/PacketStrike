@@ -1,6 +1,6 @@
 """
-PacketStrike — Configuration
-config.py — Settings, environment variables, .env file loading
+PacketStrike - Configuration
+config.py - Settings, environment variables, .env file loading
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -8,7 +8,7 @@ Purpose : Centralised configuration for the PacketStrike engine. All
           settings are read from environment variables with sensible
           defaults. Supports .env file for local development.
           Every setting is documented. Nothing is hardcoded anywhere
-          else in the codebase — always import from here.
+          else in the codebase - always import from here.
 Contact : rayyanxumair@gmail.com
 GitHub  : github.com/rayyan-umair/PacketStrike
 
@@ -75,7 +75,7 @@ class Settings(BaseSettings):
     )
     debug: bool = Field(
         default=False,
-        description="Enable debug mode — verbose logging, auto-reload",
+        description="Enable debug mode - verbose logging, auto-reload",
     )
 
     # ── Server ────────────────────────────────────────────────────────────────
@@ -101,15 +101,15 @@ class Settings(BaseSettings):
     )
     pcap_replay_path: Optional[str] = Field(
         default=None,
-        description="Path to PCAP file for replay mode — only used when capture_mode=replay",
+        description="Path to PCAP file for replay mode - only used when capture_mode=replay",
     )
     bpf_filter: str = Field(
         default="not port 22",
-        description="BPF filter applied at kernel level — excludes SSH by default to prevent capture loop",
+        description="BPF filter applied at kernel level - excludes SSH by default to prevent capture loop",
     )
     mtu_size: int = Field(
         default=1500,
-        description="Maximum transmission unit — standard Ethernet frame size",
+        description="Maximum transmission unit - standard Ethernet frame size",
     )
     ring_buffer_size: int = Field(
         default=50000,
@@ -120,11 +120,11 @@ class Settings(BaseSettings):
         description="Maximum items in the producer→consumer internal queue before backpressure",
     )
 
-    # ── DPI — Deep Packet Inspection ──────────────────────────────────────────
+    # ── DPI - Deep Packet Inspection ──────────────────────────────────────────
 
     dpi_depth: int = Field(
         default=1024,
-        description="Bytes to inspect per packet payload — deeper = more accurate, higher CPU",
+        description="Bytes to inspect per packet payload - deeper = more accurate, higher CPU",
     )
     entropy_threshold: float = Field(
         default=4.5,
@@ -136,7 +136,7 @@ class Settings(BaseSettings):
     )
     protocol_anomaly_enabled: bool = Field(
         default=True,
-        description="Enable RFC violation detection — flags traffic breaking protocol standards",
+        description="Enable RFC violation detection - flags traffic breaking protocol standards",
     )
 
     # ── Strike Detection ──────────────────────────────────────────────────────
@@ -150,13 +150,13 @@ class Settings(BaseSettings):
         description="Seconds before re-alerting on the same stream for the same strike type",
     )
 
-    # STRIKE-001 — Port Scan
+    # STRIKE-001 - Port Scan
     port_scan_threshold: int = Field(
         default=15,
         description="Distinct destination ports from one source IP within window to trigger port scan strike",
     )
 
-    # STRIKE-002 — Beaconing
+    # STRIKE-002 - Beaconing
     beaconing_min_intervals: int = Field(
         default=5,
         description="Minimum number of connection intervals required to evaluate beaconing regularity",
@@ -166,26 +166,26 @@ class Settings(BaseSettings):
         description="Allowed coefficient of variation (0.0–1.0) in connection intervals before beaconing is flagged",
     )
 
-    # STRIKE-003 — High Outbound Transfer
+    # STRIKE-003 - High Outbound Transfer
     exfiltration_threshold_bytes: int = Field(
         default=104_857_600,
         description="Outbound bytes in a single session above which exfiltration strike fires (default: 100 MB)",
     )
 
-    # STRIKE-004 — Internal Pivot
+    # STRIKE-004 - Internal Pivot
     pivot_host_threshold: int = Field(
         default=3,
         description="Number of distinct internal hosts a source connects to within window to trigger pivot strike",
     )
     internal_subnets: List[str] = Field(
         default=["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
-        description="CIDR ranges treated as internal — used for pivot and exfiltration classification",
+        description="CIDR ranges treated as internal - used for pivot and exfiltration classification",
     )
 
-    # STRIKE-005 — Known-Bad Destination
+    # STRIKE-005 - Known-Bad Destination
     threat_intel_path: str = Field(
         default=str(INTEL_DIR / "known_bad.txt"),
-        description="Path to plaintext threat intel feed — one IP or domain per line",
+        description="Path to plaintext threat intel feed - one IP or domain per line",
     )
     threat_intel_reload_interval: int = Field(
         default=3600,
@@ -249,11 +249,11 @@ class Settings(BaseSettings):
     )
     ai_model: Optional[str] = Field(
         default=None,
-        description="Model override — uses provider default if not set",
+        description="Model override - uses provider default if not set",
     )
     ai_enabled: bool = Field(
         default=False,
-        description="Master switch for AI features — False means no AI calls at all",
+        description="Master switch for AI features - False means no AI calls at all",
     )
     ai_max_tokens: int = Field(
         default=800,
@@ -276,7 +276,7 @@ class Settings(BaseSettings):
 
     secret_key: str = Field(
         default="change-this-in-production-packetstrike-secret-key-2026",
-        description="Secret key for JWT signing — MUST be changed in production",
+        description="Secret key for JWT signing - MUST be changed in production",
     )
     token_expire_hours: int = Field(
         default=24,
@@ -284,7 +284,7 @@ class Settings(BaseSettings):
     )
     allow_anonymous: bool = Field(
         default=True,
-        description="Allow unauthenticated API access — True for local-only deployments",
+        description="Allow unauthenticated API access - True for local-only deployments",
     )
 
     # ── Validators ────────────────────────────────────────────────────────────
@@ -344,7 +344,7 @@ class Settings(BaseSettings):
 
     @property
     def effective_model(self) -> Optional[str]:
-        """Returns the model to use — explicit override or provider default."""
+        """Returns the model to use - explicit override or provider default."""
         if self.ai_model:
             return self.ai_model
         defaults = {
@@ -368,9 +368,9 @@ class Settings(BaseSettings):
 def generate_env_example():
     """Write a .env.example file to the project root."""
     lines = [
-        "# PacketStrike — Environment Configuration",
+        "# PacketStrike - Environment Configuration",
         "# Copy this file to .env and fill in your values",
-        "# Built by Rayyan Umair — Silence the noise, strike the signal.",
+        "# Built by Rayyan Umair - Silence the noise, strike the signal.",
         "",
         "# ── Application ──────────────────────────────────────",
         "LOG_LEVEL=INFO",
@@ -419,7 +419,7 @@ def generate_env_example():
         "# OLLAMA_MODEL=llama3",
         "",
         "# ── Security ─────────────────────────────────────────",
-        "# CHANGE THIS in production — use a long random string",
+        "# CHANGE THIS in production - use a long random string",
         "SECRET_KEY=change-this-in-production-packetstrike-secret-key-2026",
         "ALLOW_ANONYMOUS=true",
         "",

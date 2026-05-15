@@ -1,6 +1,6 @@
 """
-PacketStrike — Data Models
-models.py — Pydantic schemas for all internal data structures
+PacketStrike - Data Models
+models.py - Pydantic schemas for all internal data structures
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -133,7 +133,7 @@ class StrikeEvent(BaseModel):
     interface      : str            = Field(default="unknown", description="Network interface the traffic was observed on")
 
     # ── 5W+H Tactical Intelligence ────────────────────────────────────────────
-    who            : str            = Field(..., description="WHO: Source identity — IP + OS fingerprint")
+    who            : str            = Field(..., description="WHO: Source identity - IP + OS fingerprint")
     what           : str            = Field(..., description="WHAT: What was detected and what protocol/payload evidence exists")
     where          : str            = Field(..., description="WHERE: Interface, VLAN, internal vs external classification")
     when           : str            = Field(..., description="WHEN: Timestamp + delta-T within the stream")
@@ -163,7 +163,7 @@ class FlowRecord(BaseModel):
     flow_id        : str            = Field(default_factory=_new_uuid, description="Unique flow identifier")
     timestamp      : datetime       = Field(default_factory=_now_utc,  description="UTC time this flow was first observed")
     interface      : str            = Field(..., description="Network interface the flow was captured on")
-    vlan_id        : Optional[int]  = Field(default=None, description="VLAN tag ID if present — critical for VLAN hopping detection")
+    vlan_id        : Optional[int]  = Field(default=None, description="VLAN tag ID if present - critical for VLAN hopping detection")
 
     # ── Network Layer ─────────────────────────────────────────────────────────
     src_ip         : str            = Field(..., description="Source IP address")
@@ -171,8 +171,8 @@ class FlowRecord(BaseModel):
     src_port       : Optional[int]  = Field(default=None, description="Source port (TCP/UDP only)")
     dst_port       : Optional[int]  = Field(default=None, description="Destination port (TCP/UDP only)")
     protocol       : Protocol       = Field(default=Protocol.UNKNOWN)
-    ttl            : Optional[int]  = Field(default=None, description="IP TTL value — used for OS fingerprinting")
-    tcp_window_size: Optional[int]  = Field(default=None, description="TCP window size — used for OS fingerprinting")
+    ttl            : Optional[int]  = Field(default=None, description="IP TTL value - used for OS fingerprinting")
+    tcp_window_size: Optional[int]  = Field(default=None, description="TCP window size - used for OS fingerprinting")
 
     # ── Volume & Timing ───────────────────────────────────────────────────────
     bytes_sent     : int            = Field(default=0, description="Bytes sent from src → dst")
@@ -180,7 +180,7 @@ class FlowRecord(BaseModel):
     packets_sent   : int            = Field(default=0, description="Packet count from src → dst")
     packets_received: int           = Field(default=0, description="Packet count from dst → src")
     start_time     : datetime       = Field(default_factory=_now_utc, description="UTC session start")
-    end_time       : Optional[datetime] = Field(default=None,         description="UTC session end — None if session still open")
+    end_time       : Optional[datetime] = Field(default=None,         description="UTC session end - None if session still open")
     duration_ms    : Optional[float]= Field(default=None,             description="Session duration in milliseconds")
     delta_t_ms     : Optional[float]= Field(default=None,             description="Time since previous packet in this TCP stream (milliseconds)")
 
@@ -192,7 +192,7 @@ class FlowRecord(BaseModel):
     strike_ids     : List[str]      = Field(default_factory=list, description="IDs of strikes this flow contributed to")
 
     # ── Raw Payload ───────────────────────────────────────────────────────────
-    raw_payload    : Optional[str]  = Field(default=None, description="Base64-encoded raw payload bytes — preserved for STRIKE-REPLAY forensics")
+    raw_payload    : Optional[str]  = Field(default=None, description="Base64-encoded raw payload bytes - preserved for STRIKE-REPLAY forensics")
 
     @field_validator("src_ip", "dst_ip")
     @classmethod
@@ -210,7 +210,7 @@ class FlowRecord(BaseModel):
 
     @property
     def is_internal_src(self) -> bool:
-        """Quick check — full subnet logic lives in the entity engine."""
+        """Quick check - full subnet logic lives in the entity engine."""
         return self.src_ip.startswith(("10.", "172.16.", "192.168."))
 
     @property
@@ -234,7 +234,7 @@ class TimelineEvent(BaseModel):
 class IPEntity(BaseModel):
     """
     A tracked IP address in the PacketStrike entity engine.
-    Entities are living objects — they accumulate history, flags, and risk
+    Entities are living objects - they accumulate history, flags, and risk
     across multiple flows over time.
 
     # NetRaptor integration hook:

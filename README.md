@@ -2,9 +2,9 @@
 
 **Local-First Network Behavior Intelligence Engine**
 
-The automated forensic sensor that silences the noise and strikes the signal — turning raw packets into **investigative evidence instead of hex dumps**.
+The automated forensic sensor that silences the noise and strikes the signal - turning raw packets into **investigative evidence instead of hex dumps**.
 
-Built by Rayyan Umair — *Technology evolves quickly. Responsibility does not.*
+Built by Rayyan Umair - *Technology evolves quickly. Responsibility does not.*
 
 ---
 
@@ -177,19 +177,19 @@ No cloud required. Fully local.
 
 PacketStrike ships with five core detections:
 
-### STRIKE-001 — Port Scan
+### STRIKE-001 - Port Scan
 Detects systematic sweeps across multiple ports from a single source IP within the detection window.
 
-### STRIKE-002 — Beaconing
-Identifies suspiciously regular outbound connection intervals — the signature of C2 malware check-ins.
+### STRIKE-002 - Beaconing
+Identifies suspiciously regular outbound connection intervals - the signature of C2 malware check-ins.
 
-### STRIKE-003 — High Outbound Transfer
-Flags sessions where outbound bytes exceed the exfiltration threshold — potential data staging or exfiltration.
+### STRIKE-003 - High Outbound Transfer
+Flags sessions where outbound bytes exceed the exfiltration threshold - potential data staging or exfiltration.
 
-### STRIKE-004 — Internal Pivot
-Detects a single host authenticating laterally across multiple internal targets — post-exploitation movement.
+### STRIKE-004 - Internal Pivot
+Detects a single host authenticating laterally across multiple internal targets - post-exploitation movement.
 
-### STRIKE-005 — Known-Bad Destination
+### STRIKE-005 - Known-Bad Destination
 Cross-references destination IPs and domains against the threat intelligence feed. Zero tolerance.
 
 ---
@@ -247,12 +247,12 @@ Every strike is transformed into:
 
 | Component | PacketStrike Output |
 |-----------|-------------------|
-| **WHO**   | Source fingerprint — OS guess via TTL/window size analysis |
-| **WHAT**  | Protocol dissection — HTTP headers, SQL queries, raw DLP hits |
+| **WHO**   | Source fingerprint - OS guess via TTL/window size analysis |
+| **WHAT**  | Protocol dissection - HTTP headers, SQL queries, raw DLP hits |
 | **WHERE** | Interface index, VLAN tag ID, internal vs external classification |
-| **WHEN**  | Delta-T — time since last packet in this specific TCP stream |
+| **WHEN**  | Delta-T - time since last packet in this specific TCP stream |
 | **WHY**   | Exact hex-offset that triggered the detection |
-| **HOW**   | STRIKE-REPLAY — sandboxed session replication |
+| **HOW**   | STRIKE-REPLAY - sandboxed session replication |
 
 ---
 
@@ -299,7 +299,7 @@ AI is NOT required.
 
 When enabled, it acts as:
 
-> a network forensics assistant — not a detector
+> a network forensics assistant - not a detector
 
 It can:
 
@@ -377,9 +377,9 @@ PacketStrike is the **network behavior intelligence layer** of the NetRaptor pla
 
 Its entity profiles and strike detections feed:
 
-* **DNStalon** — DNS behavioral intelligence
-* **SIEMulate** — behavior-aware detection engine
-* **TalonResponse** — incident response terminal
+* **DNStalon** - DNS behavioral intelligence
+* **SIEMulate** - behavior-aware detection engine
+* **TalonResponse** - incident response terminal
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

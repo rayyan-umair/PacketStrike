@@ -1,6 +1,6 @@
 """
-PacketStrike — API Layer
-api.py — FastAPI server, WebSocket streaming, REST endpoints
+PacketStrike - API Layer
+api.py - FastAPI server, WebSocket streaming, REST endpoints
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -8,7 +8,7 @@ Purpose : The external interface of PacketStrike. Exposes a FastAPI
           server with REST endpoints for querying flows, strikes, and
           entities, plus a WebSocket endpoint that streams strike events
           to connected dashboard clients in real time.
-          All business logic lives in the engine layers — the API only
+          All business logic lives in the engine layers - the API only
           reads, formats, and streams. No analysis happens here.
 Contact : rayyanxumair@gmail.com
 GitHub  : github.com/rayyan-umair/PacketStrike
@@ -129,7 +129,7 @@ def create_app(
     Build and return the FastAPI application and WebSocket manager.
     Called once from main.py at startup.
 
-    All engine references are injected — the API layer owns nothing.
+    All engine references are injected - the API layer owns nothing.
     """
 
     app = FastAPI(
@@ -297,7 +297,7 @@ def create_app(
     async def query_flows(body: dict) -> List[dict]:
         """
         Execute a SQL SELECT query against the live flows table.
-        For analyst investigation — e.g.:
+        For analyst investigation - e.g.:
             { "sql": "SELECT * FROM flows WHERE dst_port = 4444 LIMIT 50" }
         Only SELECT statements are permitted.
         """
@@ -451,7 +451,7 @@ def create_app(
         await manager.connect(ws)
         try:
             while True:
-                # Heartbeat — keeps connection alive through proxies/firewalls
+                # Heartbeat - keeps connection alive through proxies/firewalls
                 await asyncio.sleep(settings.ws_heartbeat_interval)
                 await ws.send_text(json.dumps({
                     "type"      : "heartbeat",
@@ -468,7 +468,7 @@ def create_app(
     async def ws_flows(ws: WebSocket) -> None:
         """
         Real-time WebSocket stream of all flow records.
-        High-volume — connect only for live traffic monitoring dashboards.
+        High-volume - connect only for live traffic monitoring dashboards.
 
         Message format:
             { "type": "flow", "data": { ...FlowRecord fields... } }

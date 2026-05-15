@@ -1,6 +1,6 @@
 """
-PacketStrike — Entity Engine
-entity.py — IP entity tracking, behavior profiling, risk scoring,
+PacketStrike - Entity Engine
+entity.py - IP entity tracking, behavior profiling, risk scoring,
              beacon interval analysis, and timeline management
 
 Author  : Rayyan Umair
@@ -12,7 +12,7 @@ Purpose : The entity engine is the memory of PacketStrike. It maintains
           layer, the entity engine updates the relevant entity, runs
           all five detections, and returns any strikes fired.
           Entity state is persisted to DuckDB after every update.
-          Risk scores decay over time — entities cool down if quiet.
+          Risk scores decay over time - entities cool down if quiet.
 
           # NetRaptor integration hook:
           # IPEntity maps directly to the universal EntityProfile.
@@ -73,7 +73,7 @@ class BeaconIntervalTracker:
     Tracks outbound connection timestamps per (src_ip, dst_ip) pair and
     computes the intervals between them for beaconing detection.
 
-    Uses a sliding deque bounded by the detection window — old timestamps
+    Uses a sliding deque bounded by the detection window - old timestamps
     are pruned on every update so memory stays bounded.
     """
 
@@ -172,7 +172,7 @@ class EntityEngine:
 
     def start(self) -> None:
         """Load existing entities from DuckDB into memory on startup."""
-        logger.info("EntityEngine starting — loading entities from database...")
+        logger.info("EntityEngine starting - loading entities from database...")
         rows = self._db.get_all_entities(limit=10_000)
         loaded = 0
         for row in rows:
@@ -182,11 +182,11 @@ class EntityEngine:
                 loaded += 1
             except Exception as e:
                 logger.debug(f"Failed to load entity row: {e}")
-        logger.info(f"EntityEngine ready — {loaded} entities loaded from database.")
+        logger.info(f"EntityEngine ready - {loaded} entities loaded from database.")
 
     def stop(self) -> None:
         """Flush all in-memory entities to DuckDB on shutdown."""
-        logger.info("EntityEngine stopping — flushing entities to database...")
+        logger.info("EntityEngine stopping - flushing entities to database...")
         with self._lock:
             for entity in self._entities.values():
                 try:
@@ -231,7 +231,7 @@ class EntityEngine:
                 self._apply_strike(src_entity, strike, flow)
                 self._strikes_generated += 1
 
-            # ── Step 7: Update dst entity (lighter touch — no detection run) ──
+            # ── Step 7: Update dst entity (lighter touch - no detection run) ──
             dst_entity.last_seen = flow.timestamp
             dst_entity.total_flows += 1
 
@@ -263,7 +263,7 @@ class EntityEngine:
         return self._entities[ip]
 
     def get_entity(self, ip: str) -> Optional[IPEntity]:
-        """Public accessor — returns entity or None if not yet observed."""
+        """Public accessor - returns entity or None if not yet observed."""
         with self._lock:
             return self._entities.get(ip)
 
@@ -292,7 +292,7 @@ class EntityEngine:
         entity.total_bytes_out  += flow.bytes_sent
         entity.total_bytes_in   += flow.bytes_received
 
-        # OS fingerprint — take best available, don't overwrite with None
+        # OS fingerprint - take best available, don't overwrite with None
         if flow.dpi.os_fingerprint and not entity.os_fingerprint:
             entity.os_fingerprint = flow.dpi.os_fingerprint
         if flow.ttl and not entity.ttl_observed:
@@ -305,7 +305,7 @@ class EntityEngine:
         if flow.dst_port and flow.dst_port not in entity.unique_dst_ports:
             entity.unique_dst_ports.append(flow.dst_port)
 
-        # Add flow timeline event (lightweight — no strike reference)
+        # Add flow timeline event (lightweight - no strike reference)
         entity.timeline.append(TimelineEvent(
             timestamp   = now,
             event_type  = "flow",
@@ -429,7 +429,7 @@ class EntityEngine:
             timestamp   = strike.timestamp,
             event_type  = "strike",
             description = (
-                f"⚡ {strike.strike_type.value} — {strike.what[:120]}"
+                f"⚡ {strike.strike_type.value} - {strike.what[:120]}"
             ),
             strike_id   = strike.strike_id,
             flow_id     = flow.flow_id,
@@ -437,7 +437,7 @@ class EntityEngine:
         ))
 
         logger.info(
-            f"Entity {entity.ip_address} — strike applied: "
+            f"Entity {entity.ip_address} - strike applied: "
             f"{strike.strike_type.value} | "
             f"risk={entity.risk_score:.1f} | "
             f"flags={[f.value for f in entity.flags]}"
@@ -468,7 +468,7 @@ class EntityEngine:
     def _prune_timeline(self, entity: IPEntity) -> None:
         """
         Keep only the most recent entity_max_timeline_events entries.
-        Oldest entries are dropped first — strikes are preserved because
+        Oldest entries are dropped first - strikes are preserved because
         they are appended last and are therefore most recent.
         """
         max_events = self._settings.entity_max_timeline_events

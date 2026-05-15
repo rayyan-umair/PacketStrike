@@ -1,6 +1,6 @@
 """
-PacketStrike — Entry Point
-main.py — Application bootstrap, pipeline wiring, startup/shutdown
+PacketStrike - Entry Point
+main.py - Application bootstrap, pipeline wiring, startup/shutdown
 
 Author  : Rayyan Umair
 Date    : 2026-05-13
@@ -166,7 +166,7 @@ class PipelineWorker:
         )
 
     def _run(self) -> None:
-        """Main consumer loop — runs until self._running is False."""
+        """Main consumer loop - runs until self._running is False."""
         while self._running:
             try:
                 # Block for up to 1s so stop() is checked regularly
@@ -201,7 +201,7 @@ class PipelineWorker:
     def _broadcast_strike(self, strike) -> None:
         """
         Schedule a WebSocket broadcast on the event loop.
-        Called from the pipeline thread — must use run_coroutine_threadsafe.
+        Called from the pipeline thread - must use run_coroutine_threadsafe.
         """
         payload = {
             "type": "strike",
@@ -244,7 +244,7 @@ class ArchiveScheduler:
         )
         self._thread.start()
         logger.info(
-            f"ArchiveScheduler started — "
+            f"ArchiveScheduler started - "
             f"interval={self._interval // 3600}h"
         )
 
@@ -260,7 +260,7 @@ class ArchiveScheduler:
                 flows_archived   = self._db.archive_old_flows()
                 strikes_archived = self._db.archive_old_strikes()
                 logger.info(
-                    f"Archive complete — "
+                    f"Archive complete - "
                     f"flows={flows_archived} strikes={strikes_archived}"
                 )
             except Exception as e:
@@ -328,7 +328,7 @@ class PacketStrike:
         # 5. Archive scheduler
         self._archive.start()
 
-        logger.info("Startup complete — pipeline ready.")
+        logger.info("Startup complete - pipeline ready.")
 
     def build_app(self) -> "FastAPI":
         """
@@ -408,7 +408,7 @@ def main() -> None:
 
     # Signal handlers for clean shutdown outside uvicorn lifecycle
     def _handle_signal(sig, frame):
-        logger.info(f"Signal {sig} received — initiating shutdown.")
+        logger.info(f"Signal {sig} received - initiating shutdown.")
         app_instance.shutdown()
         sys.exit(0)
 
