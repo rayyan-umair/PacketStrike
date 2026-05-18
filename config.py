@@ -3,7 +3,7 @@ PacketStrike - Configuration
 config.py - Settings, environment variables, .env file loading
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : Centralised configuration for the PacketStrike engine. All
           settings are read from environment variables with sensible
           defaults. Supports .env file for local development.

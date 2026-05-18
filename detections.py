@@ -3,7 +3,7 @@ PacketStrike - Strike Detection Engine
 detections.py - The five core behavioral detections
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : Implements the five PacketStrike strike detections. Each
           detection operates on the entity state and recent flow history
           maintained by the entity engine. Detections are stateless

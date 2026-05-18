@@ -3,7 +3,7 @@ PacketStrike - Database Layer
 database.py - DuckDB packet spooler, schema management, Parquet archiving
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : All storage operations for PacketStrike. DuckDB acts as the
           live packet spooler - fast enough for real-time ingestion,
           powerful enough for SQL-based investigation queries.

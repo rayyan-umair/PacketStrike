@@ -3,7 +3,7 @@ PacketStrike - Data Models
 models.py - Pydantic schemas for all internal data structures
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : Canonical data models for PacketStrike. Every layer of the
           pipeline communicates exclusively through these schemas.
           No raw dicts. No ad-hoc structures. No exceptions.

@@ -4,7 +4,7 @@ entity.py - IP entity tracking, behavior profiling, risk scoring,
              beacon interval analysis, and timeline management
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : The entity engine is the memory of PacketStrike. It maintains
           a live in-memory registry of every IP address observed on the
           network, accumulating behavioral evidence across flows over

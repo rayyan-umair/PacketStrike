@@ -3,7 +3,7 @@ PacketStrike - Entry Point
 main.py - Application bootstrap, pipeline wiring, startup/shutdown
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : Wires every engine layer together and starts the application.
           Startup sequence:
             1. Load settings

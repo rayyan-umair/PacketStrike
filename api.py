@@ -3,7 +3,7 @@ PacketStrike - API Layer
 api.py - FastAPI server, WebSocket streaming, REST endpoints
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : The external interface of PacketStrike. Exposes a FastAPI
           server with REST endpoints for querying flows, strikes, and
           entities, plus a WebSocket endpoint that streams strike events

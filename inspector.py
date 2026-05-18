@@ -3,7 +3,7 @@ PacketStrike - Deep Packet Inspection Engine
 inspector.py - Entropy scoring, DLP scanning, protocol anomaly detection
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : The DPI consumer layer of PacketStrike. Receives FlowRecords
           from the capture queue, inspects the raw payload up to
           dpi_depth bytes, and attaches a DPIResult to each flow before

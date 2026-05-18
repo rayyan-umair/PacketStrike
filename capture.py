@@ -3,7 +3,7 @@ PacketStrike - Capture Layer
 capture.py - Live interface capture and PCAP replay producer
 
 Author  : Rayyan Umair
-Date    : 2026-05-13
+Date    : 13 May, 2026
 Purpose : The ingestion front-end of PacketStrike. Captures raw packets
           from a live network interface or replays a PCAP file, normalises
           every frame into a FlowRecord, and pushes it onto the internal
